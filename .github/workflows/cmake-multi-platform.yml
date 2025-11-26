@@ -4,22 +4,22 @@ on: [push, pull_request]
 
 jobs:
   build:
-    # 指定在 Windows 环境中运行，这有 Visual Studio 2019 预装
-    runs-on: windows-2022
+    # 替换已淘汰的 windows-2019 
+    runs-on: windows-2022 
 
     steps:
     - uses: actions/checkout@v4
-
-    # 编译命令 (使用您提供的命令)
+    
+    # 使用 VS 2022 生成器，但指定使用 VS 2019 的工具集 (v142) 编译 32 位目标文件
     - name: Configure and Build
       run: |
         mkdir build
         cd build
-        cmake -G "Visual Studio 16 2019" -A Win32 ..
+        cmake -G "Visual Studio 17 2022" -A Win32 -T v142 ..
         cmake --build . --config Release
 
-    # 上传生成的 DLL 文件
-    - uses: actions/upload-artifact@v4
+    - name: Upload Tdx DLL
+      uses: actions/upload-artifact@v4
       with:
         name: TdxPlugin-DLL
-        path: build/Release/*.dll # 假设 DLL 在这个路径
+        path: build/Release/*.dll
