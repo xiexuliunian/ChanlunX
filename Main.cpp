@@ -1,6 +1,7 @@
 ﻿#include "Main.h"
 #include <iostream>
 #include <fstream>
+#include "ErMai.h"
 
 using namespace std;
 
@@ -190,6 +191,37 @@ void Func9(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     }
 }
 
+void Func10(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
+{
+    std::vector<float> bi(pIn, pIn + nCount);
+    std::vector<float> high(pHigh, pHigh + nCount);
+    std::vector<float> low(pLow, pLow + nCount);
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理，使用Low作为Close
+    
+    std::vector<float> out = ErMai(nCount, bi, high, low, close);
+    memset(pOut, 0, nCount * sizeof(float));
+    for (int i = 0; i < nCount; i++)
+    {
+        pOut[i] = out[i];
+    }
+}
+
+// 3. 添加输出函数11号：二买信号(严格版本)
+void Func11(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
+{
+    std::vector<float> bi(pIn, pIn + nCount);
+    std::vector<float> high(pHigh, pHigh + nCount);
+    std::vector<float> low(pLow, pLow + nCount);
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    
+    std::vector<float> out = ErMaiStrict(nCount, bi, high, low, close);
+    memset(pOut, 0, nCount * sizeof(float));
+    for (int i = 0; i < nCount; i++)
+    {
+        pOut[i] = out[i];
+    }
+}
+
 static PluginTCalcFuncInfo Info[] =
     {
         {1, &Func1},
@@ -201,6 +233,8 @@ static PluginTCalcFuncInfo Info[] =
         {7, &Func7},
         {8, &Func8},
         {9, &Func9},
+        {10, &Func10},  // 新增：二买信号(基础)
+        {11, &Func11},  // 新增：二买信号(严格)
         {0, NULL}};
 
 BOOL RegisterTdxFunc(PluginTCalcFuncInfo **pInfo)
@@ -214,3 +248,4 @@ BOOL RegisterTdxFunc(PluginTCalcFuncInfo **pInfo)
 
     return FALSE;
 }
+
