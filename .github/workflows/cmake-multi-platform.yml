@@ -1,0 +1,25 @@
+name: Build Plugin
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    # 指定在 Windows 环境中运行，这有 Visual Studio 2019 预装
+    runs-on: windows-2019 
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 编译命令 (使用您提供的命令)
+    - name: Configure and Build
+      run: |
+        mkdir build
+        cd build
+        cmake -G "Visual Studio 16 2019" -A Win32 ..
+        cmake --build . --config Release
+
+    # 上传生成的 DLL 文件
+    - uses: actions/upload-artifact@v4
+      with:
+        name: TdxPlugin-DLL
+        path: build/Release/*.dll # 假设 DLL 在这个路径
