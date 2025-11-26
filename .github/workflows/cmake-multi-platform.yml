@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   build:
     # 指定在 Windows 环境中运行，这有 Visual Studio 2019 预装
-    runs-on: windows-2019 
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@v4
