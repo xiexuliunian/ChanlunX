@@ -1,4 +1,4 @@
-﻿#include "Main.h"
+#include "Main.h"
 #include <iostream>
 #include <fstream>
 #include "ErMai.h"
@@ -27,7 +27,7 @@ void Func1(int nCount, float *pOut, float *pHigh, float *pLow, float *pIgnore)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<float> out = Bi1(nCount, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (int i = 0; i < nCount; i++)
     {
         pOut[i] = out[i];
@@ -42,7 +42,7 @@ void Func2(int nCount, float *pOut, float *pHigh, float *pLow, float *pIgnore)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<float> out = Bi2(nCount, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (int i = 0; i < nCount; i++)
     {
         pOut[i] = out[i];
@@ -58,7 +58,7 @@ void Func3(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<float> out = Duan1(nCount, bi, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (int i = 0; i < nCount; i++)
     {
         pOut[i] = out[i];
@@ -74,7 +74,7 @@ void Func4(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<float> out = Duan2(nCount, bi, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (int i = 0; i < nCount; i++)
     {
         pOut[i] = out[i];
@@ -90,7 +90,7 @@ void Func5(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<Pivot> ZhongShuList = ZS(nCount, bi, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (size_t i = 0; i < ZhongShuList.size(); i++)
     {
         Pivot ZhongShuOne = ZhongShuList.at(i);
@@ -110,7 +110,7 @@ void Func6(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<Pivot> ZhongShuList = ZS(nCount, bi, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (size_t i = 0; i < ZhongShuList.size(); i++)
     {
         Pivot ZhongShuOne = ZhongShuList.at(i);
@@ -130,7 +130,7 @@ void Func7(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<Pivot> ZhongShuList = ZS(nCount, bi, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (size_t i = 0; i < ZhongShuList.size(); i++)
     {
         Pivot ZhongShuOne = ZhongShuList.at(i);
@@ -148,7 +148,7 @@ void Func8(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<Pivot> ZhongShuList = ZS(nCount, bi, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (size_t i = 0; i < ZhongShuList.size(); i++)
     {
         Pivot ZhongShuOne = ZhongShuList.at(i);
@@ -168,7 +168,7 @@ void Func9(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
     std::vector<Pivot> ZhongShuList = ZS(nCount, bi, high, low);
-    memset(pOut, 0, nCount);
+    memset(pOut, 0, nCount * sizeof(float));
     for (size_t i = 0; i < ZhongShuList.size(); i++)
     {
         Pivot ZhongShuOne = ZhongShuList.at(i);
@@ -248,4 +248,3 @@ BOOL RegisterTdxFunc(PluginTCalcFuncInfo **pInfo)
 
     return FALSE;
 }
-

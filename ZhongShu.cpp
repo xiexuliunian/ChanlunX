@@ -1,4 +1,20 @@
-﻿#include "ZhongShu.h"
+#include "ZhongShu.h"
+#include <limits>
+
+// Rewritten ZhongShu detection to follow canonical Chanlun definition:
+// - Build segments from consecutive pivots (pIn markers)
+// - A ZhongShu is formed when three consecutive segments have a non-empty price intersection
+// - The ZhongShu can be extended by following segments as long as intersection remains non-empty
+// - Termination occurs when a following segment lies entirely above or below the current ZhongShu intersection
+
+struct Seg
+{
+    int s;
+    int e;
+    float high;
+    float low;
+    int dir; // 1 up, -1 down
+};
 
 ZhongShu::ZhongShu()
 {
@@ -52,9 +68,9 @@ void ZhongShu::Reset()
     this->nTerminate = 0;
 }
 
-// 推入高点并计算状态
 bool ZhongShu::PushHigh(int nIndex, float fValue)
 {
+    // Legacy: keep for compatibility but not used by new ZS implementation
     nTop3 = nTop2;
     fTop3 = fTop2;
     nTop2 = nTop1;
@@ -102,6 +118,7 @@ bool ZhongShu::PushHigh(int nIndex, float fValue)
 
 bool ZhongShu::PushLow(int nIndex, float fValue)
 {
+    // Legacy: keep for compatibility but not used by new ZS implementation
     nBot3 = nBot2;
     fBot3 = fBot2;
     nBot2 = nBot1;
@@ -150,165 +167,105 @@ bool ZhongShu::PushLow(int nIndex, float fValue)
 std::vector<Pivot> ZS(int nCount, std::vector<float> pIn, std::vector<float> pHigh, std::vector<float> pLow)
 {
     std::vector<Pivot> ZhongShuList;
-    ZhongShu ZhongShuOne;
-    for (int i = 0; i < nCount; i++)
+
+    // collect pivot indices
+    std::vector<int> pivots;
+    pivots.reserve(nCount);
+    for (int i = 0; i < nCount; ++i)
     {
-        if (pIn[i] == 1)
+        if (pIn[i] != 0)
+            pivots.push_back(i);
+    }
+
+    if (pivots.size() < 4)
+        return ZhongShuList; // need at least 3 segments (4 pivots)
+
+    // build segments between consecutive pivots
+    std::vector<Seg> segs;
+    segs.reserve(pivots.size() - 1);
+    for (size_t k = 1; k < pivots.size(); ++k)
+    {
+        int a = pivots[k - 1];
+        int b = pivots[k];
+        Seg s;
+        s.s = a;
+        s.e = b;
+        s.high = std::max(pHigh[a], pHigh[b]);
+        s.low = std::min(pLow[a], pLow[b]);
+        // direction: if starting pivot is low (-1) then segment is up, else down
+        s.dir = (pIn[a] == -1) ? 1 : -1;
+        segs.push_back(s);
+    }
+
+    // scan triples to find ZhongShu
+    for (size_t i = 0; i + 2 < segs.size(); ++i)
+    {
+        float overlap_low = std::max(std::max(segs[i].low, segs[i + 1].low), segs[i + 2].low);
+        float overlap_high = std::min(std::min(segs[i].high, segs[i + 1].high), segs[i + 2].high);
+        if (overlap_low <= overlap_high)
         {
-            // 遇到线段高点，推入中枢算法
-            if (ZhongShuOne.PushHigh(i, pHigh[i]))
+            Pivot p;
+            p.s = segs[i].s;
+            p.e = segs[i + 2].e;
+            p.zg = overlap_high;
+            p.zd = overlap_low;
+            p.direction = (float)segs[i + 1].dir; // middle segment direction
+            p.affirm = true;
+            p.terminate = 0;
+            // extend with subsequent segments while intersection remains non-empty
+            size_t j = i + 3;
+            float cur_low = p.zd;
+            float cur_high = p.zg;
+            while (j < segs.size())
             {
-                bool bValid = true;
-                float fHighValue = 0;
-                int nHignIndex = 0;
-                int nLowIndex = 0;
-                int nLowIndexTemp = 0;
-                int nHighCount = 0;
-                if (ZhongShuOne.nDirection == 1 && ZhongShuOne.nTerminate == -1) // 向上中枢被向下终结
+                float new_low = std::max(cur_low, segs[j].low);
+                float new_high = std::min(cur_high, segs[j].high);
+                if (new_low <= new_high)
                 {
-                    bValid = false;
-                    for (int x = ZhongShuOne.nStart; x <= ZhongShuOne.nEnd; x++)
-                    {
-                        if (pIn[x] == 1)
-                        {
-                            if (nHighCount == 0)
-                            {
-                                nHighCount++;
-                                fHighValue = pHigh[x];
-                                nHignIndex = x;
-                            }
-                            else
-                            {
-                                nHighCount++;
-                                if (pHigh[x] >= fHighValue)
-                                {
-                                    if (nHighCount > 2)
-                                    {
-                                        bValid = true;
-                                    }
-                                    fHighValue = pHigh[x];
-                                    nHignIndex = x;
-                                    nLowIndex = nLowIndexTemp;
-                                }
-                            }
-                        }
-                        else if (pIn[x] == -1)
-                        {
-                            nLowIndexTemp = x;
-                        }
-                    }
-                    if (bValid)
-                    {
-                        ZhongShuOne.nEnd = nLowIndex; // 中枢结束点移到最高点的前一个低点。
-                    }
-                    i = nHignIndex - 1;
+                    // extend
+                    cur_low = new_low;
+                    cur_high = new_high;
+                    p.e = segs[j].e;
+                    p.zd = cur_low;
+                    p.zg = cur_high;
+                    ++j;
                 }
                 else
                 {
-                    i = ZhongShuOne.nEnd - 1;
+                    // no overlap -> termination check
+                    if (segs[j].high < cur_low)
+                    {
+                        p.terminate = -1; // terminated downward (next seg entirely below)
+                    }
+                    else if (segs[j].low > cur_high)
+                    {
+                        p.terminate = 1; // terminated upward (next seg entirely above)
+                    }
+                    break;
                 }
-                if (bValid)
-                {
-                    Pivot pivot;
-                    pivot.s = ZhongShuOne.nStart;
-                    pivot.e = ZhongShuOne.nEnd;
-                    pivot.zg = ZhongShuOne.fHigh;
-                    pivot.zd = ZhongShuOne.fLow;
-                    pivot.direction = (float)ZhongShuOne.nDirection;
-                    pivot.gg = *std::max_element(pHigh.begin() + pivot.s + 1, pHigh.begin() + pivot.e, [](float a, float b)
-                                                 { return a < b; });
-                    pivot.dd = *std::min_element(pLow.begin() + pivot.s + 1, pLow.begin() + pivot.e, [](float a, float b)
-                                                 { return a < b; });
-                    ZhongShuList.push_back(pivot);
-                }
-                ZhongShuOne.Reset();
             }
-        }
-        else if (pIn[i] == -1)
-        {
-            // 遇到线段低点，推入中枢算法
-            if (ZhongShuOne.PushLow(i, pLow[i]))
+            // determine gg/dd (max/min inside open interval (s+1, e-1))
+            if (p.e > p.s + 1)
             {
-                bool bValid = true;
-                float fLowValue = 0;
-                int nLowIndex = 0;
-                int nHighIndex = 0;
-                int nHighIndexTemp = 0;
-                int nLowCount = 0;
-                if (ZhongShuOne.nDirection == -1 && ZhongShuOne.nTerminate == 1) // 向下中枢被向上终结
-                {
-                    bValid = false;
-                    for (int x = ZhongShuOne.nStart; x <= ZhongShuOne.nEnd; x++)
-                    {
-                        if (pIn[x] == -1)
-                        {
-                            if (nLowCount == 0)
-                            {
-                                nLowCount++;
-                                fLowValue = pLow[x];
-                                nLowIndex = x;
-                            }
-                            else
-                            {
-                                nLowCount++;
-                                if (pLow[x] <= fLowValue)
-                                {
-                                    if (nLowCount > 2)
-                                    {
-                                        bValid = true;
-                                    }
-                                    fLowValue = pLow[x];
-                                    nLowIndex = x;
-                                    nHighIndex = nHighIndexTemp;
-                                }
-                            }
-                        }
-                        else if (pIn[x] == 1)
-                        {
-                            nHighIndexTemp = x;
-                        }
-                    }
-                    if (bValid)
-                    {
-                        ZhongShuOne.nEnd = nHighIndex; // 中枢结束点移到最高点的前一个低点。
-                    }
-                    i = nLowIndex - 1;
-                }
-                else
-                {
-                    i = ZhongShuOne.nEnd - 1;
-                }
-                if (bValid)
-                {
-                    Pivot pivot;
-                    pivot.s = ZhongShuOne.nStart;
-                    pivot.e = ZhongShuOne.nEnd;
-                    pivot.zg = ZhongShuOne.fHigh;
-                    pivot.zd = ZhongShuOne.fLow;
-                    pivot.direction = (float)ZhongShuOne.nDirection;
-                    pivot.gg = *std::max_element(pHigh.begin() + pivot.s + 1, pHigh.begin() + pivot.e, [](float a, float b)
-                                                 { return a < b; });
-                    pivot.dd = *std::min_element(pLow.begin() + pivot.s + 1, pLow.begin() + pivot.e, [](float a, float b)
-                                                 { return a < b; });
-                    ZhongShuList.push_back(pivot);
-                }
-                ZhongShuOne.Reset();
+                auto hi_it_begin = pHigh.begin() + p.s + 1;
+                auto hi_it_end = pHigh.begin() + p.e;
+                auto lo_it_begin = pLow.begin() + p.s + 1;
+                auto lo_it_end = pLow.begin() + p.e;
+                p.gg = *std::max_element(hi_it_begin, hi_it_end);
+                p.dd = *std::min_element(lo_it_begin, lo_it_end);
             }
+            else
+            {
+                // no interior points
+                p.gg = p.zg;
+                p.dd = p.zd;
+            }
+            ZhongShuList.push_back(p);
+            // continue scan after the last segment used (j - 1). set i = j - 1 (outer loop will i++)
+            if (j > i + 2)
+                i = j - 1;
         }
     }
-    if (ZhongShuOne.bValid) // 最后一个还没有被终结的中枢。
-    {
-        Pivot pivot;
-        pivot.s = ZhongShuOne.nStart;
-        pivot.e = ZhongShuOne.nEnd;
-        pivot.zg = ZhongShuOne.fHigh;
-        pivot.zd = ZhongShuOne.fLow;
-        pivot.direction = (float)ZhongShuOne.nDirection;
-        pivot.gg = *std::max_element(pHigh.begin() + pivot.s + 1, pHigh.begin() + pivot.e, [](float a, float b)
-                                     { return a < b; });
-        pivot.dd = *std::min_element(pLow.begin() + pivot.s + 1, pLow.begin() + pivot.e, [](float a, float b)
-                                     { return a < b; });
-        ZhongShuList.push_back(pivot);
-    }
+
     return ZhongShuList;
 }

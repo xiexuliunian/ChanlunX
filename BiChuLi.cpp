@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <exception>
 #include "BiChuLi.h"
@@ -89,15 +89,49 @@ void BiChuLi::handle(vector<Kxian> &kxianList)
     {
         if (this->biList.empty())
         {
-            // 第一笔生成中，也是假设第一笔是向上的
-            Bi bi;
-            bi.fangXiang = 1;
-            bi.kaiShi = (*iter).kaiShi;
-            bi.jieShu = (*iter).jieShu;
-            bi.gao = (*iter).gao;
-            bi.di = (*iter).di;
-            bi.kxianList.push_back(*iter);
-            this->biList.push_back(bi);
+            // 不再默认生成第一笔为向上，而是先把K线放入临时队列，等待成笔条件
+            tempKxianList.push_back(*iter);
+
+            // 尝试根据现有临时K线确定第一笔方向（如果已具备最小成笔条件）
+            if (tempKxianList.size() >= 4)
+            {
+                if (ifChengbi(tempKxianList, 1))
+                {
+                    // 形成向上第一笔
+                    Bi bi;
+                    bi.fangXiang = 1;
+                    bi.kaiShi = tempKxianList.front().kaiShi;
+                    bi.jieShu = tempKxianList.back().jieShu;
+                    // 以临时K线中最靠后的最高价作为笔顶
+                    bi.gao = tempKxianList.back().gao;
+                    // 笔底使用临时K线中最早的最低价（可根据需要改进）
+                    bi.di = tempKxianList.front().di;
+                    for (vector<Kxian>::iterator it = tempKxianList.begin(); it != tempKxianList.end(); it++)
+                    {
+                        bi.kxianList.push_back(*it);
+                    }
+                    tempKxianList.clear();
+                    this->biList.push_back(bi);
+                }
+                else if (ifChengbi(tempKxianList, -1))
+                {
+                    // 形成向下第一笔
+                    Bi bi;
+                    bi.fangXiang = -1;
+                    bi.kaiShi = tempKxianList.front().kaiShi;
+                    bi.jieShu = tempKxianList.back().jieShu;
+                    // 以临时K线中最靠后的最低价作为笔底
+                    bi.di = tempKxianList.back().di;
+                    // 笔顶使用临时K线中最早的最高价（可根据需要改进）
+                    bi.gao = tempKxianList.front().gao;
+                    for (vector<Kxian>::iterator it = tempKxianList.begin(); it != tempKxianList.end(); it++)
+                    {
+                        bi.kxianList.push_back(*it);
+                    }
+                    tempKxianList.clear();
+                    this->biList.push_back(bi);
+                }
+            }
         }
         else
         {
