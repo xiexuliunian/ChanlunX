@@ -1,4 +1,4 @@
-﻿#ifndef __ZHONGSHU_H__
+#ifndef __ZHONGSHU_H__
 #define __ZHONGSHU_H__
 
 #include <vector>
@@ -28,12 +28,13 @@ struct Pivot
 {
     int s;
     int e;
-    float zg;
-    float zd;
-    float gg;
-    float dd;
+    float zg;    // 中枢上轨
+    float zd;    // 中枢下轨
+    float gg;    // 区间内最高
+    float dd;    // 区间内最低
     float direction;
     bool affirm;
+    int terminate; // 0:not terminated, 1:terminated upward, -1:terminated downward
 };
 
 std::vector<Pivot> ZS(int nCount, std::vector<float> pIn, std::vector<float> pHigh, std::vector<float> pLow);
