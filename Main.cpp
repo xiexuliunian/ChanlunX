@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include "ErMai.h"
+#include "YiMai.h"
+#include "SanMai.h"
 
 using namespace std;
 
@@ -222,6 +224,79 @@ void Func11(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     }
 }
 
+//=============================================================================
+// 输出函数12号：一买信号(基础版本)
+//=============================================================================
+void Func12(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
+{
+    std::vector<float> bi(pIn, pIn + nCount);
+    std::vector<float> high(pHigh, pHigh + nCount);
+    std::vector<float> low(pLow, pLow + nCount);
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    
+    std::vector<float> out = YiMai(nCount, bi, high, low, close);
+    memset(pOut, 0, nCount * sizeof(float));
+    for (int i = 0; i < nCount; i++)
+    {
+        pOut[i] = out[i];
+    }
+}
+
+//=============================================================================
+// 输出函数13号：一买信号(严格版本)
+//=============================================================================
+void Func13(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
+{
+    std::vector<float> bi(pIn, pIn + nCount);
+    std::vector<float> high(pHigh, pHigh + nCount);
+    std::vector<float> low(pLow, pLow + nCount);
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    
+    std::vector<float> out = YiMaiStrict(nCount, bi, high, low, close);
+    memset(pOut, 0, nCount * sizeof(float));
+    for (int i = 0; i < nCount; i++)
+    {
+        pOut[i] = out[i];
+    }
+}
+
+//=============================================================================
+// 输出函数14号：三买信号(基础版本)
+//=============================================================================
+void Func14(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
+{
+    std::vector<float> bi(pIn, pIn + nCount);
+    std::vector<float> high(pHigh, pHigh + nCount);
+    std::vector<float> low(pLow, pLow + nCount);
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    
+    std::vector<float> out = SanMai(nCount, bi, high, low, close);
+    memset(pOut, 0, nCount * sizeof(float));
+    for (int i = 0; i < nCount; i++)
+    {
+        pOut[i] = out[i];
+    }
+}
+
+//=============================================================================
+// 输出函数15号：三买信号(严格版本)
+//=============================================================================
+void Func15(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
+{
+    std::vector<float> bi(pIn, pIn + nCount);
+    std::vector<float> high(pHigh, pHigh + nCount);
+    std::vector<float> low(pLow, pLow + nCount);
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    
+    std::vector<float> out = SanMaiStrict(nCount, bi, high, low, close);
+    memset(pOut, 0, nCount * sizeof(float));
+    for (int i = 0; i < nCount; i++)
+    {
+        pOut[i] = out[i];
+    }
+}
+
+
 static PluginTCalcFuncInfo Info[] =
     {
         {1, &Func1},
@@ -235,6 +310,10 @@ static PluginTCalcFuncInfo Info[] =
         {9, &Func9},
         {10, &Func10},  // 新增：二买信号(基础)
         {11, &Func11},  // 新增：二买信号(严格)
+        {12, &Func12},  // 新增：一买信号(基础)
+        {13, &Func13},  // 新增：一买信号(严格)
+        {14, &Func14},  // 新增：三买信号(基础)
+        {15, &Func15},  // 新增：三买信号(严格)
         {0, NULL}};
 
 BOOL RegisterTdxFunc(PluginTCalcFuncInfo **pInfo)
