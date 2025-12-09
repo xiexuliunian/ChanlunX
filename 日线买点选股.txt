@@ -1,0 +1,20 @@
+﻿{日线买点选股公式 - 绑定为2号函数}
+{用于选股器，筛选出现买点信号的股票}
+
+{计算段}
+FRAC:=TDXDLL2(2,H,L,0);{标准笔}
+DUAN:=TDXDLL2(3,FRAC,H,L);{段的端点}
+
+{买点信号}
+YIMAI:=TDXDLL2(12,DUAN,H,L);{一买信号-基于段}
+ERMAI:=TDXDLL2(10,DUAN,H,L);{二买信号-基于段}
+SANMAI:=TDXDLL2(14,DUAN,H,L);{三买信号-基于段}
+
+{选股条件 - 出现任意买点}
+ANYMAI:=YIMAI OR ERMAI OR SANMAI;
+
+{进阶选股 - 二买或三买(更稳健)}
+WENJIANMAI:=ERMAI OR SANMAI;
+
+{输出选股信号}
+ANYMAI;{任意买点}
