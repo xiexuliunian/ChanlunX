@@ -172,7 +172,7 @@ std::vector<float> YiMaiStrict(int nCount, std::vector<float> pIn, std::vector<f
             
             // 计算中枢区间(简化: 使用前两笔的重叠区域)
             float zhongShuHigh = std::min(top1, top2);
-            float zhongShuLow = std::max(bot1, bot1); // bot1作为中枢下沿参考
+            float zhongShuLow = bot1; // 使用bot1作为中枢下沿参考
             
             // 一买条件:
             // 1. bot2跌破中枢下沿(bot1)

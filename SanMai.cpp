@@ -194,9 +194,9 @@ std::vector<float> SanMaiStrict(int nCount, std::vector<float> pIn, std::vector<
                 bool aboveZhongShu = (bot4 > zhongShuLow * 0.98);
                 bool bottomRising = (bot4 > bot3 * 0.99);
                 
-                // 检查是否突破前高
-                float maxTop = std::max(std::max(top1, top2), top3);
-                bool breakPrevHigh = (top3 > maxTop * 0.98);
+                // 检查是否突破前高(不包括当前top3)
+                float maxPrevTop = std::max(top1, top2);
+                bool breakPrevHigh = (top3 > maxPrevTop * 0.98);
                 
                 if (aboveZhongShu && bottomRising && breakPrevHigh)
                 {

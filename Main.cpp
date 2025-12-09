@@ -232,7 +232,7 @@ void Func12(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> bi(pIn, pIn + nCount);
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
-    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理，使用Low作为Close (与ErMai一致)
     
     std::vector<float> out = YiMai(nCount, bi, high, low, close);
     memset(pOut, 0, nCount * sizeof(float));
@@ -250,7 +250,7 @@ void Func13(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> bi(pIn, pIn + nCount);
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
-    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理，使用Low作为Close (与ErMai一致)
     
     std::vector<float> out = YiMaiStrict(nCount, bi, high, low, close);
     memset(pOut, 0, nCount * sizeof(float));
@@ -268,7 +268,7 @@ void Func14(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> bi(pIn, pIn + nCount);
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
-    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理，使用Low作为Close (与ErMai一致)
     
     std::vector<float> out = SanMai(nCount, bi, high, low, close);
     memset(pOut, 0, nCount * sizeof(float));
@@ -286,7 +286,7 @@ void Func15(int nCount, float *pOut, float *pIn, float *pHigh, float *pLow)
     std::vector<float> bi(pIn, pIn + nCount);
     std::vector<float> high(pHigh, pHigh + nCount);
     std::vector<float> low(pLow, pLow + nCount);
-    std::vector<float> close(pLow, pLow + nCount); // 简化处理
+    std::vector<float> close(pLow, pLow + nCount); // 简化处理，使用Low作为Close (与ErMai一致)
     
     std::vector<float> out = SanMaiStrict(nCount, bi, high, low, close);
     memset(pOut, 0, nCount * sizeof(float));
