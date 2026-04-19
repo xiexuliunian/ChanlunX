@@ -9,5 +9,7 @@
 #include "Duan.h"
 #include "ZhongShu.h"
 #include "IniReader.h"
+#include "YiMai.h"
+#include "SanMai.h"
 
 #endif
