@@ -1,6 +1,4 @@
-﻿# ChanlunX
 
-## 如何编译
 
 ### Visual Studio 2019
 
